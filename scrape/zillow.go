@@ -1,5 +1,9 @@
 package scrape
 
-func ScrapeZillow() {
+func ScrapeZillow(url string) Listings {
+	var listings Listings
 
+	//c.OnHTML()
+
+	return listings
 }

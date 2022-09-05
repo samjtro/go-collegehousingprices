@@ -10,15 +10,24 @@ import (
 )
 
 var (
+	//rdc flags
 	cityStateFlag    string
 	priceIsUnderFlag int
-	pagesFlag        int
-	results          []Listings
-	c                = colly.NewCollector()
+	rdcPagesFlag     int
+
+	//trulia flags
+	cityFlag        string
+	stateFlag       string
+	minPriceFlag    int
+	maxPriceFlag    int
+	truliaPagesFlag int
+
+	c = colly.NewCollector()
 
 	urlList = []string{
-		"https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d",
-		"https://www.zillow.com/homes/Laramie,WY/",
+		"https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d", //CityState, Price, Page #
+		"https://www.zillow.com/homes/%s/",              //CityState,
+		"https://www.trulia.com/%s/%s/%d-%d_price/%d_p", //State, City, Min Price, Max Price, Page #
 	}
 )
 
@@ -41,14 +50,34 @@ func init() {
 		log.Fatal(err)
 	}
 
-	cityStateFlag = os.Getenv("citystate")
-	priceIsUnderFlag, err = strconv.Atoi(os.Getenv("priceisunder"))
+	cityStateFlag = os.Getenv("rdc-citystate")
+	priceIsUnderFlag, err = strconv.Atoi(os.Getenv("rdc-price"))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pagesFlag, err = strconv.Atoi(os.Getenv("pages"))
+	rdcPagesFlag, err = strconv.Atoi(os.Getenv("rdc-pages"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cityFlag = os.Getenv("trulia-city")
+	stateFlag = os.Getenv("trulia-state")
+	minPriceFlag, err = strconv.Atoi(os.Getenv("trulia-min"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	maxPriceFlag, err = strconv.Atoi(os.Getenv("trulia-max"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	truliaPagesFlag, err = strconv.Atoi(os.Getenv("trulia-pages"))
 
 	if err != nil {
 		log.Fatal(err)
@@ -60,5 +89,30 @@ func init() {
 }
 
 func Scrape() {
-	ScrapeRDC(urlList[0])
+	//ScrapeRDC(urlList[0])
+	ScrapeTrulia(urlList[2])
+}
+
+func UnformatPrice(price string) string {
+	var newInt []rune
+
+	for i, c := range price {
+		if c == '$' {
+			if i > 0 {
+				break
+			}
+		}
+
+		if c == '$' {
+			continue
+		} else if c == ',' {
+			continue
+		} else if c == '+' {
+			continue
+		} else {
+			newInt = append(newInt, c)
+		}
+	}
+
+	return string(newInt)
 }
